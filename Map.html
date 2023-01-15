@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <title>HTML 5 Boilerplate-Heat Map</title>
+    <link rel="stylesheet" href="style.css">
+    <title>Heat Map</title>
+    
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const url = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json';
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.send();
+        xhr.onload = function() {
+          const stringOfJSON = JSON.parse(xhr.responseText);  
+          let html = "";
+
+          let baseTemp = stringOfJSON.baseTemperature;
+          const monthlyVariance = stringOfJSON.monthlyVariance;
+          
+          const maxYrForXaxis = d3.max(monthlyVariance, (monthVarObj) => monthVarObj.year); 
+          const minYrForXaxis = d3.min(monthlyVariance, (monthVarObj) => monthVarObj.year);
+          const XaxisLength = maxYrForXaxis - minYrForXaxis;
+
+          const width = 1600;
+          const height = 550;   
+          const padding = 80;
+          const numOfMonths = 12;
+          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          let degreesCelcius = String.fromCodePoint(8451);
+          
+          const xScale = d3.scaleLinear()
+                           .domain([minYrForXaxis, maxYrForXaxis+1])
+                           .range([padding, width - padding]);
+          
+          const yScale = d3.scaleLinear()
+                           .domain([.5, numOfMonths+.5])
+                           .range([height - padding, padding]);
+          
+          const svg = d3.select("#svgMap")
+                        .append("svg")
+                        .attr("width", width)
+                        .attr("height", height);
+          
+          const g = svg.append("g")
+                       .attr("transform", "translate(0, 0)");
+          
+          const rects = g.selectAll("rect")
+                           .data(monthlyVariance)
+                           .enter()
+                           .append("rect")
+             
+            rects.attr("x", (d) => xScale(d.year)).attr("y", (d) => yScale(d.month+.5))
+                 .attr("width", (d) => (width/XaxisLength)).attr("height", ((height - padding * 2)/numOfMonths))
+                 .attr("fill", (d) => {
+                                   const tempVar = (Math.round((baseTemp + (d.variance))*10) / 10);
+              
+                                   if(.8 <= tempVar && tempVar < 3.9)
+                                        return "rgb(69, 117, 180)";
+                                   if(3.9 <= tempVar && tempVar < 5.0)
+                                        return "rgb(116, 173, 209)";
+                                   if(5.0 <= tempVar && tempVar < 6.1)
+                                        return "rgb(171, 217, 233)";
+                                   if(6.1 <= tempVar && tempVar < 7.2)
+                                        return "rgb(224, 243, 248)";
+                                   if(7.2 <= tempVar && tempVar < 8.3)
+                                        return "rgb(255, 255, 191)";
+                                   if(8.3 <= tempVar && tempVar < 9.5)
+                                        return "rgb(254, 224, 144)";
+                                   if(9.5 <= tempVar && tempVar < 10.6)
+                                        return "rgb(253, 174, 97)";
+                                   if(10.6 <= tempVar && tempVar < 11.7)
+                                        return "rgb(244, 109, 67)";
+                                   if(11.7 <= tempVar && tempVar <= 32.8)
+                                        return "rgb(215, 48, 39)";
+                                   })
+                 .attr("class", "tooltip")
+                 .append("title")
+                 .append("tspan")
+                 .attr("x", (width*2))
+                 .attr("y", (height/2))
+                 .attr("text-anchor", "middle")
+                 .text((d) => ( d.year + " - " + months[d.month-1] + "\n" + (Math.round((baseTemp + (d.variance))*10) / 10) + degreesCelcius + "\n" + (Math.round(d.variance*10)/10) + degreesCelcius ) );
+          
+          const celsius = d3.select("#description")
+                            .append("tspan")
+                            .text(baseTemp + degreesCelcius);
+          
+          const xAxis = d3.axisBottom(xScale).scale(xScale).ticks(XaxisLength/10).tickFormat(i => i);
+          const yAxis = d3.axisLeft(yScale).scale(yScale).tickFormat(i => months[i-1]);
+          
+          const xLabel = svg.append("text")
+                            .attr("x", width/2)
+                            .attr("y", height-padding/2)
+                            .attr("text-anchor", "middle")
+                            .text("Years");
+          
+          const yLabel = svg.append("text")
+                            .attr("x", -height/2)
+                            .attr("y", padding/6)
+                            .attr("text-anchor", "middle")
+                            .attr("transform", "rotate(-90)")
+                            .text("Month");
+          
+          svg.append("g")
+             .attr("transform", "translate(0, " + (height - padding) + ")")
+             .call(xAxis);
+          
+          svg.append("g")
+             .attr("transform", "translate(" + (padding) + ", 0)")
+             .call(yAxis);
+          
+          document.getElementsByClassName('theMap').innerHTML;
+        };
+      });
+  </script>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const width = 600;
+        const height = 100;
+        const padding = 20;
+        const colorHeight = 20;
+        const xValues = [ [2.8, "rgb(69, 117, 180)"], [3.9, "rgb(116, 173, 209)"], [5.0, "rgb(171, 217, 233)"], [6.1, "rgb(224, 243, 248)"],
+                          [7.2, "rgb(255, 255, 191)"], [8.3, "rgb(254, 224, 144)"], [9.5, "rgb(253, 174, 97)"], [10.6, "rgb(244, 109, 67)"],
+                          [11.7, "rgb(215, 48, 39)"], [12.8, ""] ];
+        
+        const xMin = d3.min(xValues, (d) => d[0]);
+        const xMax = d3.max(xValues, (d) => d[0]);
+        
+        const xScale = d3.scaleLinear()
+                         .domain([xMin, xMax])
+                         .range([padding, width - padding]);
+
+        const yScale = d3.scaleLinear()
+                         .domain([0, 600])
+                         .range([height - padding, padding]);
+        
+        const svg = d3.select("#legend")
+                      .append("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+        
+        const g = svg.append("g")
+                     .attr("transform", "translate(0, 0)");
+        
+        const rects = g.selectAll("rect")
+                      .data(xValues)
+                      .enter()
+                      .append("rect")
+       
+        rects.attr("x", (d) => xScale(d[0])).attr("y", (d, i) => yScale(i+height*2))
+             .attr("width", (d, i) => i + 1 < xValues.length ? xScale(xValues[i + 1][0]) - xScale(d[0]) : 0).attr("height", colorHeight)
+             .attr("fill", (d) => d[1]);
+                 
+        const xAxis = d3.axisBottom(xScale)
+                        .tickValues(xValues.map(d => d[0]))
+                        .tickFormat(d3.format(".1f"));
+        
+        svg.append("g")
+           .attr("transform", "translate(0, " + (height - padding) + ")")
+           .call(xAxis);
+      });
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1 id="title">Monthly Global Land-Surface Temperature</h1>
+      <h2 id="description">1753-2015: Base Temperature </h2>
+    </header>
+    <div id="MapStuff">
+      <div id="svgMap" class="theMap"></div>
+      <legend id="legend"></legend>
+    </div>   
+  </body>
+</html>
